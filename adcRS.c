@@ -28,9 +28,7 @@ unsigned int volt; //received value
 unsigned int curr; //received value
 const unsigned char *pTemp;
  
-extern const unsigned char M1drvPatternsCCW[];
-extern const unsigned char M1drvPatternsCCW_RAM[];
- 
+
  
 	volatile unsigned char HState; //z wewnatrz przrwania
 	volatile char Xstate = 0;
@@ -39,9 +37,7 @@ extern const unsigned char M1drvPatternsCCW_RAM[];
 	//#define tmpDly 400
 	unsigned char tmpDly = 0;
  
-//dodac sprawdzanie stall - jesli przez 1sekunde nie zmieni sie stan... albo szybciej i zwiekszanie mocy?
- 
- ///md: przerwanie odczytuje stan Hall i ustawia piny Hi/Lo, i rejestry PWM'ow
+
 
 ISR( PCINT0_vect, ISR_BLOCK )
 {
@@ -62,12 +58,18 @@ int main(void) {
 	
 	SetupHardware();
 		
+	//--- Histogram tests
+
 	h_buff_t buffer01;
 
 	buffer01.buff[0].bin[0] = 33;
 	buffer01.buff[0].bin[1]++;
 	buffer01.max_total = 200;
 	h_buff_clean_unit(&buffer01, 0);
+
+
+	//--- Histogram tests
+
 
 	sei();
 
@@ -82,10 +84,7 @@ int main(void) {
 		if (RecvStringUART(StrinIn))
 		{
 			//SendStringUART("\r\nReceived: ");
-			//SendStringUART(StrinIn);
-			//SendStringUART("\r\n");
-			
-			valRcv = atoi (&StrinIn[1]);
+
 			
 			switch (StrinIn[0]) {
 				
@@ -104,101 +103,6 @@ int main(void) {
 					else
 						valRcv = ICR3;
 					sprintf(StrinOut, "Cycles: %d\r\n", ICR3);
-				break;
-	
-	
-				//measurement options:				
-				case 'p':	//ADC measure
-					valRcv = ADC_GetChannelReading( ADC_1100MV_BANDGAP | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV);
-					sprintf(StrinOut, "Bandgap 1100mV: (%d) %d[0.1mV]\r\n", valRcv, 25 * valRcv );
-				break;
-				
-				case 'o':	//ADC measure
-					valRcv = ADC_GetChannelReading(ADC_CHANNEL3 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-					sprintf(StrinOut, "Sys Voltage: %d[mV]\r\n", 461 + (8 * valRcv) );
-				break;	
-				
-				case 'u':	//ADC measure chnl ADC2, deltaV=5mV
-					valRcv = ADC_GetChannelReading(0x02 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-					sprintf(StrinOut, "Bat Voltage: %d[mV]\r\n", (5 * valRcv) );
-				break;	
-				
-				case 'i':	//ADC0 (deltaI=45.45mA deltaV=2.5mV
-					valRcv = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-					sprintf(StrinOut, "Bat Current: %d[mA]\r\n", (659 - valRcv)*45);
-				break;	
-				
-				case 'z':	//set Gate (PC6) on
-					PORTC |= (1<<PC6);					
-				break;				
-				case 'x':	//set Gate off
-					PORTC &= ~(1<<PC6);
-				break;
-				
-				
-				case '1':	//procedure no.1
-				volt = ADC_GetChannelReading(0x02 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				curr = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				sprintf(StrinOut, "%d; %d\r\n", volt*5, (659 - curr)*45);
-				SendStringUART(StrinOut);
-					DDRC |= (1<<PC6);
-					PORTC |= (1<<PC6);					
-				_delay_ms(500);
-				volt = ADC_GetChannelReading(0x02 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				curr = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				sprintf(StrinOut, "%d; %d\r\n", volt, (659 - curr)*45);
-				SendStringUART(StrinOut);
-				_delay_ms(500);
-				volt = ADC_GetChannelReading(0x02 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				curr = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				sprintf(StrinOut, "%d; %d\r\n", volt, (659 - curr)*45);
-				SendStringUART(StrinOut);
-				_delay_ms(500);
-				volt = ADC_GetChannelReading(0x02 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				curr = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				sprintf(StrinOut, "%d; %d\r\n", volt, (659 - curr)*45);
-				SendStringUART(StrinOut);
-				_delay_ms(500);
-				volt = ADC_GetChannelReading(0x02 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				curr = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				sprintf(StrinOut, "%d; %d\r\n", volt, (659 - curr)*45);
-				SendStringUART(StrinOut);
-					DDRC |= (1<<PC6);
-					PORTC &= ~(1<<PC6);
-				volt = ADC_GetChannelReading(0x02 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				curr = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				sprintf(StrinOut, "%d; %d\r\n", volt, (659 - curr)*45);
-				SendStringUART(StrinOut);
-				_delay_ms(500);
-				volt = ADC_GetChannelReading(0x02 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				curr = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				sprintf(StrinOut, "%d; %d\r\n", volt, (659 - curr)*45);
-				SendStringUART(StrinOut);
-				_delay_ms(500);
-				volt = ADC_GetChannelReading(0x02 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				curr = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				sprintf(StrinOut, "%d; %d\r\n", volt, (659 - curr)*45);
-				SendStringUART(StrinOut);
-				_delay_ms(500);
-				volt = ADC_GetChannelReading(0x02 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				curr = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );	
-				sprintf(StrinOut, "%d; %d\r\n", volt, (659 - curr)*45);				
-				break;
-				
-				case '2':	//procedure no.1
-				volt = ADC_GetChannelReading(0x02 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				curr = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				sprintf(StrinOut, "%d; %d; ", volt*5, (659 - curr)*45);
-				SendStringUART(StrinOut);
-				for (int x=0; x<10; x++) {
-					_delay_ms(5);
-					curr = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-					sprintf(StrinOut, "%d; ", (659 - curr)*45);
-					SendStringUART(StrinOut);
-				}
-				curr = ADC_GetChannelReading(0x00 | ADC_RIGHT_ADJUSTED | ADC_REFERENCE_INT2560MV );
-				sprintf(StrinOut, "%d; \r\n", (659 - curr)*45);
-				
 				break;				
 				
 				default:
