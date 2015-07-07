@@ -28,8 +28,9 @@ typedef enum {
 }stat_t;
 
 /**
- * Single buffer consists of histogram bins
+ * Single buffer/frame consists of histogram bins
  * and number of total samples used in hist.
+ * Status should be taken as access limiter.
  */
 typedef struct histogram {
 	bin_t bin[BIN_COUNT];
@@ -38,7 +39,11 @@ typedef struct histogram {
 } histogram_t;
 
 /**
- * Stack of 'units' for buffering histograms.
+ * Stack of frames for buffering histograms.
+ * Please use given index "_idx" do read/write
+ * appropriate buffer.
+ * max_total is a common for all frames value
+ * of maximum count for histogram
  */
 typedef struct h_buffer {
 	histogram_t buff[BUFF_COUNT];
@@ -48,8 +53,17 @@ typedef struct h_buffer {
 } h_buff_t;
 
 void h_buff_clean_unit(h_buff_t *buff, uint8_t unit_nr);
+/**
+ * Clean and initialize all frames of given buffer.
+ */
 void h_buff_clean_all(h_buff_t *buff);
+/**
+ * Uptade actualy written buffer with new data 
+ */
 void h_buff_proc_data(h_buff_t *buff, uint8_t data);
+/**
+ * Bring a pointer to ready to read buffer.
+ */
 void h_buff_to_read_ptr(h_buff_t *buff, histogram_t ** single_unit);
 
 
